@@ -1,0 +1,2 @@
+# bilemo
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/36dce2717d8e4906a69c98a17bac64ad)](https://app.codacy.com/gh/LanchesThomas/bilemo?utm_source=github.com&utm_medium=referral&utm_content=LanchesThomas/bilemo&utm_campaign=Badge_Grade)
