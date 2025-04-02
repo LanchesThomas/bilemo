@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Customer;
 use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -15,6 +16,26 @@ class UserRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, User::class);
     }
+
+    public function findAllbyCustomer(int $id) {
+        return $this->createQueryBuilder('u')
+            ->innerJoin('u.customer', 'c')
+            ->where('c.id=:id')
+            ->setParameter('id', $id)
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function findUserByCustomer(int $userId, int $customerId): ?User
+{
+    return $this->createQueryBuilder('u')
+        ->where('u.id = :userId')
+        ->andWhere('u.customer = :customerId')
+        ->setParameter('userId', $userId)
+        ->setParameter('customerId', $customerId)
+        ->getQuery()
+        ->getOneOrNullResult();
+}
 
     //    /**
     //     * @return User[] Returns an array of User objects
