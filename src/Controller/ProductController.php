@@ -10,6 +10,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Serializer\SerializerInterface;
 
+
 final class ProductController extends AbstractController
 {
     #[Route('/api/products', name: 'products', methods: ['GET'])]
