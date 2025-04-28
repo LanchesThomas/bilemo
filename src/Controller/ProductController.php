@@ -26,6 +26,6 @@ final class ProductController extends AbstractController
     public function getDetailProducts(Product $product, SerializerInterface $serializer): JsonResponse
     {
             $jsonProduct = $serializer->serialize($product, 'json');
-            return new JsonResponse($jsonProduct, Response::HTTP_OK, [], true);
+            return new JsonResponse($jsonProduct, Response::HTTP_OK, [], true);  
     }
 }

@@ -37,7 +37,7 @@ final class UserController extends AbstractController
         SerializerInterface $serializer
         ): JsonResponse
     {
-        $user = $userRepository->findUserByCustomer($id, 1);
+        $user = $userRepository->findUserByCustomer($id, 2);
 
         if (!$user) {
             return new JsonResponse(['message' => 'Utilisateur non trouvé ou accès interdit'], Response::HTTP_NOT_FOUND);
@@ -92,7 +92,7 @@ final class UserController extends AbstractController
         return new JsonResponse($jsonUser, Response::HTTP_CREATED, ["Location" => $location], true);
     }
 
-    #[Route('/api/users/{id}', name:"updateBook", methods:['PUT'])]
+    #[Route('/api/users/{id}', name:"updateUser", methods:['PUT'])]
 
     public function updateBook(
         Request $request, 
@@ -117,10 +117,11 @@ final class UserController extends AbstractController
             return new JsonResponse(['error' => 'Customer not found'], Response::HTTP_NOT_FOUND);
         }
         $updatedUser->setCustomer($customerRepository->find($customer));
+        $jsonUpdateUser = $serializer->serialize($updatedUser, 'json', ['groups' => 'getUsers']);
         
         $em->persist($updatedUser);
         $em->flush();
-        return new JsonResponse(null, JsonResponse::HTTP_NO_CONTENT);
+        return new JsonResponse($jsonUpdateUser, JsonResponse::HTTP_OK, [], true);
    }
 
    #[Route('/api/users/{id}', name: 'deleteUser', methods: ['DELETE'])]
