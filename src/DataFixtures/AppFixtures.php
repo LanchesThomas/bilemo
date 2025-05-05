@@ -7,9 +7,14 @@ use App\Entity\Product;
 use App\Entity\User;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class AppFixtures extends Fixture
 {
+    public function __construct(
+        private UserPasswordHasherInterface $passwordHasher
+    ) {}
+
     public function load(ObjectManager $manager): void
     {
         $customerList = [];
@@ -17,7 +22,10 @@ class AppFixtures extends Fixture
             $customer = new Customer();
             $customer->setUsername("Customer_" . $i);
             $customer->setEmail("customer_" . $i . "@mail.com");
-            $customer->setPassword("customer_" . $i . "pasword") ;
+
+            $plainPassword = "customer_{$i}password";
+            $hashedPassword = $this->passwordHasher->hashPassword($customer, $plainPassword);
+            $customer->setPassword($hashedPassword);
 
             $manager->persist($customer);
             $customerList[] = $customer;

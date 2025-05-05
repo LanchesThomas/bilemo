@@ -4,10 +4,14 @@ namespace App\Entity;
 
 use App\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
+
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
+#[UniqueEntity(fields: ['email'], message: 'Cet email est déjà utilisé.')]
 class User
 {
     #[ORM\Id]
@@ -16,14 +20,17 @@ class User
     #[Groups(["getUsers"])]
     private ?int $id = null;
 
+    #[Assert\NotBlank(message: "Le Nom de l'utilisateur est obligatoire")]
     #[ORM\Column(length: 255)]
     #[Groups(["getUsers"])]
     private ?string $name = null;
 
+    #[Assert\NotBlank(message: "Le Prénom de l'utilisateur est obligatoire")]
     #[ORM\Column(length: 255)]
     #[Groups(["getUsers"])]
     private ?string $firstname = null;
 
+    #[Assert\NotBlank(message: "L'email de l'utilisateur est obligatoire")]
     #[ORM\Column(length: 255)]
     #[Groups(["getUsers"])]
     private ?string $email = null;
