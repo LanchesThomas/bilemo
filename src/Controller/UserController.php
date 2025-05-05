@@ -24,7 +24,12 @@ final class UserController extends AbstractController
         SerializerInterface $serializer
         ): JsonResponse
     {
-        $userList = $userRepository->findAllbyCustomer(1);
+        $customer = $this->getUser();
+        if (!$customer) {
+            return new JsonResponse(['message' => 'Utilisateur non trouvé ou accès interdit'], Response::HTTP_NOT_FOUND);
+        }
+        // On récupère tous les utilisateurs
+        $userList = $userRepository->findAllbyCustomer($customer->getId());
         $jsonUserList = $serializer->serialize($userList, 'json', ['groups' => 'getUsers']);
 
         return new JsonResponse($jsonUserList, Response::HTTP_OK, [], true);
@@ -37,11 +42,12 @@ final class UserController extends AbstractController
         SerializerInterface $serializer
         ): JsonResponse
     {
-        $user = $userRepository->findUserByCustomer($id, 2);
-
-        if (!$user) {
+        $customer = $this->getUser();
+        if (!$customer) {
             return new JsonResponse(['message' => 'Utilisateur non trouvé ou accès interdit'], Response::HTTP_NOT_FOUND);
         }
+
+        $user = $userRepository->findUserByCustomer($id, $customer->getId());
 
         $jsonUser = $serializer->serialize($user, 'json', ['groups' => 'getUsers']);
         return new JsonResponse($jsonUser, Response::HTTP_OK, [], true);
