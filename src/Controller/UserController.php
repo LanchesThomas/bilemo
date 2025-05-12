@@ -12,27 +12,41 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Symfony\Contracts\Cache\ItemInterface;
+use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 final class UserController extends AbstractController
 {
     #[Route('/api/users', name: 'users', methods: ['GET'])]
     public function getAllUsers(
         UserRepository $userRepository, 
-        SerializerInterface $serializer
+        SerializerInterface $serializer,
+        Request $request,
+        TagAwareCacheInterface $cachePool
         ): JsonResponse
     {
+        $page = $request->query->get('page', 1);
+        $limit = $request->query->get('limit', 3);
+
+        
         /** @var Customer $customer */
         $customer = $this->getUser();
         if (!$customer) {
             return new JsonResponse(['message' => 'Utilisateur non trouvé ou accès interdit'], Response::HTTP_NOT_FOUND);
         }
-        // On récupère tous les utilisateurs liés au customer
-        $userList = $userRepository->findAllbyCustomer($customer->getId());
-        $jsonUserList = $serializer->serialize($userList, 'json', ['groups' => 'getUsers']);
 
+        $idCache = 'user_list_' . $customer->getId() . '_' . $page . '_' . $limit;
+        // On récupère tous les utilisateurs liés au customer 
+        // On utilise le cache pour éviter de faire trop de requêtes
+        $jsonUserList = $cachePool->get($idCache, function(ItemInterface $item) use ($userRepository, $customer, $page, $limit, $serializer) {
+            echo "Element pas en cache"; // Debug message 
+            $item->tag('userCache');
+            $userList = $userRepository->findAllbyCustomer($customer->getId(), $page, $limit);
+            return $serializer->serialize($userList, 'json', ['groups' => 'getUsers']);
+        });
+       
         return new JsonResponse($jsonUserList, Response::HTTP_OK, [], true);
     }
 
@@ -40,7 +54,8 @@ final class UserController extends AbstractController
     public function getDetailUsers(
         int $id, 
         UserRepository $userRepository, 
-        SerializerInterface $serializer
+        SerializerInterface $serializer,
+        TagAwareCacheInterface $cachePool
         ): JsonResponse
     {
         /** @var Customer $customer */
@@ -50,12 +65,19 @@ final class UserController extends AbstractController
             return new JsonResponse(['message' => 'Utilisateur non trouvé ou accès interdit'], Response::HTTP_NOT_FOUND);
         }
 
-        $user = $userRepository->findUserByCustomer($id, $customer->getId());
-        if (!$user) {
-            return new JsonResponse(['message' => 'Utilisateur non trouvé ou accès interdit'], Response::HTTP_NOT_FOUND);
-        }
+        $idCache = 'user_' . $id . '_' . $customer->getId();
+        // On récupère tous les utilisateurs liés au customer
+        // On utilise le cache pour éviter de faire trop de requêtes
+        $jsonUser = $cachePool->get($idCache, function(ItemInterface $item) use ($userRepository, $customer, $id, $serializer) {
+            echo "Element pas en cache"; // Debug message 
+            $item->tag('userCache');
+            $user = $userRepository->findUserByCustomer($id, $customer->getId());
+            if (!$user) {
+                return new JsonResponse(['message' => 'Utilisateur non trouvé ou accès interdit'], Response::HTTP_NOT_FOUND);
+            }
+            return $serializer->serialize($user, 'json', ['groups' => 'getUsers']);
+        });
         
-        $jsonUser = $serializer->serialize($user, 'json', ['groups' => 'getUsers']);
         return new JsonResponse($jsonUser, Response::HTTP_OK, [], true);
     }
 
@@ -103,7 +125,7 @@ final class UserController extends AbstractController
     }
 
    #[Route('/api/users/{id}', name: 'deleteUser', methods: ['DELETE'])]
-    public function deleteBook($id, User $user, EntityManagerInterface $em, UserRepository $userRepository, ): JsonResponse 
+    public function deleteBook($id, User $user, EntityManagerInterface $em, UserRepository $userRepository, TagAwareCacheInterface $cache): JsonResponse 
     {
         /** @var Customer $customer */
         $customer = $this->getUser();
@@ -116,6 +138,7 @@ final class UserController extends AbstractController
         if (!$user) {
             return new JsonResponse(['message' => 'Utilisateur non trouvé ou accès interdit'], Response::HTTP_NOT_FOUND);
         } else {
+            $cache->invalidateTags(['userCache']);
             $em->remove($user);
             $em->flush();
         }
