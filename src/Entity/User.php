@@ -31,6 +31,7 @@ class User
     private ?string $firstname = null;
 
     #[Assert\NotBlank(message: "L'email de l'utilisateur est obligatoire")]
+    #[Assert\Email(message: "L'email '{{ value }}' n'est pas un email valide.")]
     #[ORM\Column(length: 255)]
     #[Groups(["getUsers"])]
     private ?string $email = null;
