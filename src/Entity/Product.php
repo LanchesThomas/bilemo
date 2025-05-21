@@ -5,6 +5,18 @@ namespace App\Entity;
 use App\Repository\ProductRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Hateoas\Configuration\Annotation as Hateoas;
+
+
+/**
+ * @Hateoas\Relation(
+ *      "self",
+ *      href = @Hateoas\Route(
+ *          "detailProducts",
+ *          parameters = { "id" = "expr(object.getId())" }
+ *      ),
+ * )
+ */
 
 #[ORM\Entity(repositoryClass: ProductRepository::class)]
 class Product

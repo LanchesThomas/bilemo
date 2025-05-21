@@ -17,11 +17,13 @@ class UserRepository extends ServiceEntityRepository
         parent::__construct($registry, User::class);
     }
 
-    public function findAllbyCustomer(int $id) {
+    public function findAllbyCustomer(int $id, int $page, int $limit): array{
         return $this->createQueryBuilder('u')
             ->innerJoin('u.customer', 'c')
             ->where('c.id=:id')
             ->setParameter('id', $id)
+            ->setMaxResults($limit)
+            ->setFirstResult(($page - 1) * $limit)
             ->getQuery()
             ->getResult();
     }

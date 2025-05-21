@@ -18,19 +18,19 @@ class AppFixtures extends Fixture
     public function load(ObjectManager $manager): void
     {
         $customerList = [];
-        for ($i=0; $i < 5 ; $i++) { 
+        // for ($i=0; $i < 5 ; $i++) { 
             $customer = new Customer();
-            $customer->setUsername("Customer_" . $i);
-            $customer->setEmail("customer_" . $i . "@mail.com");
+            $customer->setUsername("admin");
+            $customer->setEmail("admin@mail.com");
 
-            $plainPassword = "customer_{$i}password";
+            $plainPassword = "admin-password";
             $hashedPassword = $this->passwordHasher->hashPassword($customer, $plainPassword);
             $customer->setPassword($hashedPassword);
 
             $manager->persist($customer);
             $customerList[] = $customer;
 
-        }
+        // }
 
         for ($i=0; $i < 10 ; $i++) { 
             $user = new User();
