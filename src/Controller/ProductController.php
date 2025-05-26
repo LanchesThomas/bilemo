@@ -81,6 +81,13 @@ final class ProductController extends AbstractController
         response: 404,
         description: 'Produit non trouvé'
     )]
+    #[OA\Parameter(
+        name: 'id',
+        in: 'path',
+        description: "L'identifiant du produit à récupérer",
+        required: true,
+        schema: new OA\Schema(type: 'string')
+    )]
     #[OA\Tag(name: 'Product')]
     public function getDetailProducts(Product $product, SerializerInterface $serializer): JsonResponse
     {
